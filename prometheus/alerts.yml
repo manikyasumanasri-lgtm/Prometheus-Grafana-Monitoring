@@ -1,0 +1,29 @@
+groups:
+  - name: cloudpulse_alerts
+    rules:
+      - alert: ServiceDown
+        expr: up == 0
+        for: 20s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Instance {{ $labels.instance }} is down"
+          description: "Target {{ $labels.instance }} in job {{ $labels.job }} has been unreachable for more than 20 seconds."
+
+      - alert: HighHttpErrorRate
+        expr: (sum by (job) (rate(flask_http_request_total{status=~"5.."}[1m])) / sum by (job) (rate(flask_http_request_total[1m]))) * 100 > 10
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "High HTTP 5xx error rate detected"
+          description: "HTTP 5xx error rate on {{ $labels.job }} is above 10% over the last minute."
+
+      - alert: HighRequestLatency
+        expr: histogram_quantile(0.95, sum by (le, job) (rate(flask_http_request_duration_seconds_bucket{endpoint="simulate_slow"}[1m]))) > 1.0
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "High p95 request latency detected"
+          description: "95th percentile request latency exceeds 1.0s (measured at {{ $value | printf \"%.2f\" }}s)."

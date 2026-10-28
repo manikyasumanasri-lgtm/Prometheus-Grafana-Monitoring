@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CloudPulse — DevOps Monitoring & Alerting Platform</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-layout">
+        <!-- Top Navigation -->
+        <header class="top-navbar">
+            <div class="brand">
+                <div class="brand-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    <h1>CloudPulse</h1>
+                    <span class="subtitle">DevOps Monitoring &amp; Alerting</span>
+                </div>
+            </div>
+
+            <div class="nav-status-group">
+                <div id="prom-status-pill" class="status-pill checking">
+                    <span class="status-dot"></span>
+                    <span class="label">Prometheus: Checking...</span>
+                </div>
+                <div id="am-status-pill" class="status-pill checking">
+                    <span class="status-dot"></span>
+                    <span class="label">Alertmanager: Checking...</span>
+                </div>
+            </div>
+
+            <div class="nav-actions">
+                <div class="quick-links">
+                    <a href="http://localhost:9090" target="_blank" rel="noopener" class="link-btn" title="Open Prometheus UI">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                        Prometheus :9090
+                    </a>
+                    <a href="http://localhost:9093" target="_blank" rel="noopener" class="link-btn" title="Open Alertmanager UI">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                        Alertmanager :9093
+                    </a>
+                    <a href="http://localhost:3000" target="_blank" rel="noopener" class="link-btn" title="Open Grafana Dashboards">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                        Grafana :3000
+                    </a>
+                </div>
+                <div class="controls-group">
+                    <button id="refresh-btn" class="btn btn-secondary" title="Manually refresh metrics">
+                        <svg id="refresh-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                        Refresh
+                    </button>
+                    <label class="auto-refresh-toggle">
+                        <input type="checkbox" id="auto-refresh-check" checked>
+                        <span>Auto (5s)</span>
+                    </label>
+                </div>
+            </div>
+        </header>
+
+        <!-- Unreachable Warning Banner -->
+        <div id="service-alert-banner" class="alert-banner hidden">
+            <div class="alert-banner-content">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <div class="alert-text">
+                    <strong>Prometheus Connection Unavailable:</strong>
+                    <span id="service-alert-msg">Cannot reach Prometheus backend. Metrics displayed will show as unavailable until connection is restored.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="dashboard-container">
+            <!-- Key Metric Cards Row -->
+            <section class="metrics-grid">
+                <!-- Total Requests -->
+                <div class="metric-card">
+                    <div class="metric-card-header">
+                        <span class="metric-title">Total HTTP Requests</span>
+                        <span class="metric-badge" id="badge-total-requests">PromQL</span>
+                    </div>
+                    <div class="metric-value-wrap">
+                        <span class="metric-value" id="val-total-requests">--</span>
+                        <span class="metric-unit">requests</span>
+                    </div>
+                    <div class="metric-subtext">Cumulative scraped count from Flask</div>
+                </div>
+
+                <!-- Request Rate -->
+                <div class="metric-card">
+                    <div class="metric-card-header">
+                        <span class="metric-title">Request Throughput</span>
+                        <span class="metric-badge" id="badge-request-rate">1m rate</span>
+                    </div>
+                    <div class="metric-value-wrap">
+                        <span class="metric-value" id="val-request-rate">--</span>
+                        <span class="metric-unit">req / sec</span>
+                    </div>
+                    <div class="metric-subtext">Real-time HTTP request throughput</div>
+                </div>
+
+                <!-- Error Rate -->
+                <div class="metric-card" id="card-error-rate">
+                    <div class="metric-card-header">
+                        <span class="metric-title">5xx Error Rate</span>
+                        <span class="metric-badge" id="badge-error-rate">Threshold: 10%</span>
+                    </div>
+                    <div class="metric-value-wrap">
+                        <span class="metric-value" id="val-error-rate">--</span>
+                        <span class="metric-unit">%</span>
+                    </div>
+                    <div class="metric-subtext">Calculated ratio of 5xx to total requests</div>
+                </div>
+
+                <!-- p95 Latency -->
+                <div class="metric-card" id="card-latency">
+                    <div class="metric-card-header">
+                        <span class="metric-title">p95 Latency</span>
+                        <span class="metric-badge" id="badge-latency">Threshold: 1.0s</span>
+                    </div>
+                    <div class="metric-value-wrap">
+                        <span class="metric-value" id="val-latency">--</span>
+                        <span class="metric-unit">ms</span>
+                    </div>
+                    <div class="metric-subtext">95th percentile HTTP request duration</div>
+                </div>
+            </section>
+
+            <!-- Middle Row: Scrape Targets & Simulator -->
+            <div class="content-row">
+                <!-- Target Health Section -->
+                <section class="panel targets-panel">
+                    <div class="panel-header">
+                        <div class="panel-title-wrap">
+                            <h2>Prometheus Scrape Targets</h2>
+                            <span class="panel-subtitle">Live health reported by Prometheus server</span>
+                        </div>
+                        <span id="targets-count-badge" class="badge badge-neutral">--</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Job Name</th>
+                                    <th>Endpoint</th>
+                                    <th>Status</th>
+                                    <th>Last Scrape</th>
+                                    <th>Scrape Duration</th>
+                                </tr>
+                            </thead>
+                            <tbody id="targets-table-body">
+                                <tr>
+                                    <td colspan="5" class="table-empty">Connecting to Prometheus targets...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Interactive Traffic & Alert Simulator -->
+                <section class="panel simulator-panel">
+                    <div class="panel-header">
+                        <div class="panel-title-wrap">
+                            <h2>Live Alert &amp; Traffic Simulator</h2>
+                            <span class="panel-subtitle">Generate real HTTP activity to verify Prometheus metrics &amp; alert rules</span>
+                        </div>
+                    </div>
+                    <div class="simulator-actions">
+                        <button class="btn btn-simulate btn-success" id="btn-sim-traffic">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            Generate Normal Traffic (200 OK)
+                        </button>
+                        <button class="btn btn-simulate btn-danger" id="btn-sim-error">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                            Trigger 500 Error (Error Rate)
+                        </button>
+                        <button class="btn btn-simulate btn-warning" id="btn-sim-slow">
+                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                            Trigger Slow Request (1.2s Latency)
+                        </button>
+                    </div>
+                    <div class="simulator-log-container">
+                        <div class="log-header">
+                            <span>Simulator Activity Log</span>
+                            <button id="clear-log-btn" class="text-btn">Clear Log</button>
+                        </div>
+                        <div class="terminal-log" id="sim-log">
+                            <div class="log-entry log-info">[Ready] Click an action above to generate live metrics.</div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Bottom Row: Alerts Grid -->
+            <div class="content-row">
+                <!-- Prometheus Configured Alerts -->
+                <section class="panel alerts-panel">
+                    <div class="panel-header">
+                        <div class="panel-title-wrap">
+                            <h2>Prometheus Rule Status</h2>
+                            <span class="panel-subtitle">Real-time alert states evaluated by Prometheus</span>
+                        </div>
+                        <span id="alerts-count-badge" class="badge badge-neutral">--</span>
+                    </div>
+                    <div class="alerts-list" id="prom-alerts-list">
+                        <div class="empty-state">Loading active alert rules...</div>
+                    </div>
+                </section>
+
+                <!-- Alertmanager Webhook Stream -->
+                <section class="panel webhook-panel">
+                    <div class="panel-header">
+                        <div class="panel-title-wrap">
+                            <h2>Alertmanager Notifications</h2>
+                            <span class="panel-subtitle">Live events delivered via Alertmanager webhook</span>
+                        </div>
+                        <span id="webhook-count-badge" class="badge badge-neutral">--</span>
+                    </div>
+                    <div class="alerts-list" id="webhook-alerts-list">
+                        <div class="empty-state">No webhook notifications received yet.</div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-left">
+                <span>CloudPulse v1.0.0</span>
+                <span class="separator">&bull;</span>
+                <span>Prometheus &bull; Alertmanager &bull; Grafana &bull; Flask</span>
+            </div>
+            <div class="footer-right">
+                <span id="last-updated-text">Last sync: --</span>
+            </div>
+        </footer>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

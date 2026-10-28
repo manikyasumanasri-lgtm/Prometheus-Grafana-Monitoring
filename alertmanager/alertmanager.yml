@@ -1,0 +1,15 @@
+global:
+  resolve_timeout: 1m
+
+route:
+  group_by: ['alertname', 'job']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'cloudpulse-dashboard'
+
+receivers:
+  - name: 'cloudpulse-dashboard'
+    webhook_configs:
+      - url: 'http://web:5000/api/alerts/webhook'
+        send_resolved: true
