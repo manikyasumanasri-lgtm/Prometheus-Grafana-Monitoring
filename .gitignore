@@ -8,3 +8,12 @@ ENV/
 *.log
 .DS_Store
 Thumbs.db
+
+.vagrant/
+.env
+.env.*
+!.env.example
+__pycache__/
+*.pyc
+venv/
+.venv/

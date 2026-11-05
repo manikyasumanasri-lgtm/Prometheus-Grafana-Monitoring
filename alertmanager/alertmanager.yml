@@ -2,14 +2,44 @@ global:
   resolve_timeout: 1m
 
 route:
-  group_by: ['alertname', 'job']
+  receiver: 'cloudpulse-default'
+  group_by: ['alertname', 'job', 'severity']
   group_wait: 10s
-  group_interval: 10s
+  group_interval: 15s
   repeat_interval: 1h
-  receiver: 'cloudpulse-dashboard'
+  routes:
+    - match:
+        severity: critical
+      receiver: 'cloudpulse-critical'
+      group_wait: 5s
+      group_interval: 10s
+      repeat_interval: 30m
+    - match:
+        severity: warning
+      receiver: 'cloudpulse-warning'
+      group_wait: 10s
+      group_interval: 30s
+      repeat_interval: 1h
+
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'instance']
 
 receivers:
-  - name: 'cloudpulse-dashboard'
+  - name: 'cloudpulse-default'
     webhook_configs:
-      - url: 'http://web:5000/api/alerts/webhook'
+      - url: 'http://172.18.0.3:5000/api/alerts/webhook'
+        send_resolved: true
+
+  - name: 'cloudpulse-critical'
+    webhook_configs:
+      - url: 'http://172.18.0.3:5000/api/alerts/webhook'
+        send_resolved: true
+
+  - name: 'cloudpulse-warning'
+    webhook_configs:
+      - url: 'http://172.18.0.3:5000/api/alerts/webhook'
         send_resolved: true

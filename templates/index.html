@@ -3,245 +3,1040 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CloudPulse — DevOps Monitoring & Alerting Platform</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <title>CloudPulse — Local DevOps Observability Platform</title>
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Chart.js for real-time telemetry graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
     <div class="app-layout">
-        <!-- Top Navigation -->
-        <header class="top-navbar">
-            <div class="brand">
-                <div class="brand-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <!-- ========================================================= -->
+        <!-- Fixed Modern Sidebar Navigation                           -->
+        <!-- ========================================================= -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="brand-logo">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
                     </svg>
                 </div>
-                <div class="brand-text">
-                    <h1>CloudPulse</h1>
-                    <span class="subtitle">DevOps Monitoring &amp; Alerting</span>
+                <div class="brand-info">
+                    <span class="brand-title">CloudPulse</span>
+                    <span class="brand-edition">Enterprise Observability</span>
                 </div>
             </div>
 
-            <div class="nav-status-group">
-                <div id="prom-status-pill" class="status-pill checking">
-                    <span class="status-dot"></span>
-                    <span class="label">Prometheus: Checking...</span>
-                </div>
-                <div id="am-status-pill" class="status-pill checking">
-                    <span class="status-dot"></span>
-                    <span class="label">Alertmanager: Checking...</span>
+            <nav class="sidebar-nav">
+                <div class="nav-section-title">MONITORING</div>
+                <a href="#overview" class="nav-item active" data-view="overview">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    <span>Overview</span>
+                </a>
+                <a href="#infrastructure" class="nav-item" data-view="infrastructure">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+                    <span>Infrastructure</span>
+                    <span class="nav-badge" id="nav-badge-vm">Ubuntu</span>
+                </a>
+                <a href="#cpu" class="nav-item" data-view="cpu">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/><line x1="20" y1="9" x2="23" y2="9"/><line x1="20" y1="15" x2="23" y2="15"/><line x1="1" y1="9" x2="4" y2="9"/><line x1="1" y1="15" x2="4" y2="15"/></svg>
+                    <span>CPU Monitoring</span>
+                </a>
+                <a href="#memory" class="nav-item" data-view="memory">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 19v-3"/><path d="M10 19v-3"/><path d="M14 19v-3"/><path d="M18 19v-3"/><rect x="2" y="5" width="20" height="10" rx="2"/></svg>
+                    <span>Memory</span>
+                </a>
+                <a href="#disk" class="nav-item" data-view="disk">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+                    <span>Disk Utilization</span>
+                </a>
+                <a href="#network" class="nav-item" data-view="network">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                    <span>Network Traffic</span>
+                </a>
+
+                <div class="nav-section-title">INCIDENTS &amp; SERVICES</div>
+                <a href="#alerts" class="nav-item" data-view="alerts">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                    <span>Alerts</span>
+                    <span class="nav-badge badge-alert" id="nav-badge-alerts">0</span>
+                </a>
+                <a href="#services" class="nav-item" data-view="services">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+                    <span>Services</span>
+                    <span class="nav-badge" id="nav-badge-services">4 UP</span>
+                </a>
+
+                <div class="nav-section-title">SETTINGS</div>
+                <a href="#settings" class="nav-item" data-view="settings">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    <span>Simulator &amp; Settings</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-status-card">
+                    <span class="user-status-dot online"></span>
+                    <div class="user-status-text">
+                        <span class="user-env">Ubuntu Sandbox</span>
+                        <span class="user-host">2 vCPUs · 2048 MB</span>
+                    </div>
                 </div>
             </div>
+        </aside>
 
-            <div class="nav-actions">
-                <div class="quick-links">
-                    <a href="http://localhost:9090" target="_blank" rel="noopener" class="link-btn" title="Open Prometheus UI">
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                        Prometheus :9090
-                    </a>
-                    <a href="http://localhost:9093" target="_blank" rel="noopener" class="link-btn" title="Open Alertmanager UI">
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                        Alertmanager :9093
-                    </a>
-                    <a href="http://localhost:3000" target="_blank" rel="noopener" class="link-btn" title="Open Grafana Dashboards">
-                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                        Grafana :3000
-                    </a>
-                </div>
-                <div class="controls-group">
-                    <button id="refresh-btn" class="btn btn-secondary" title="Manually refresh metrics">
-                        <svg id="refresh-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
-                        Refresh
+        <!-- ========================================================= -->
+        <!-- Main Application Shell                                    -->
+        <!-- ========================================================= -->
+        <div class="main-wrapper">
+            <!-- Top Header Bar -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="mobile-toggle-btn" id="mobile-toggle" aria-label="Toggle navigation">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
                     </button>
-                    <label class="auto-refresh-toggle">
-                        <input type="checkbox" id="auto-refresh-check" checked>
-                        <span>Auto (5s)</span>
-                    </label>
+                    <div class="env-pill">
+                        <span class="env-dot"></span>
+                        <span id="env-name-text">Local Sandbox (Ubuntu/Docker)</span>
+                    </div>
+                    <div class="health-pill healthy" id="top-health-pill">
+                        <span class="health-indicator"></span>
+                        <span id="top-health-text">HEALTHY</span>
+                    </div>
                 </div>
-            </div>
-        </header>
 
-        <!-- Unreachable Warning Banner -->
-        <div id="service-alert-banner" class="alert-banner hidden">
-            <div class="alert-banner-content">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                <div class="alert-text">
-                    <strong>Prometheus Connection Unavailable:</strong>
-                    <span id="service-alert-msg">Cannot reach Prometheus backend. Metrics displayed will show as unavailable until connection is restored.</span>
+                <div class="topbar-right">
+                    <!-- Search Bar -->
+                    <div class="search-box">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input type="text" id="global-search" placeholder="Search metrics, targets, alerts...">
+                    </div>
+
+                    <!-- Time Range Selector -->
+                    <div class="time-range-wrap">
+                        <select id="time-range-select" class="select-control" title="Time range for graphs">
+                            <option value="300">Last 5 minutes</option>
+                            <option value="900" selected>Last 15 minutes</option>
+                            <option value="3600">Last 1 hour</option>
+                        </select>
+                    </div>
+
+                    <!-- Notification Bell with Popover -->
+                    <div class="notification-wrap">
+                        <button class="icon-btn" id="bell-btn" title="Alert Notifications">
+                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                            <span class="notification-dot hidden" id="bell-badge">0</span>
+                        </button>
+                        <div class="notification-dropdown hidden" id="notification-popover">
+                            <div class="popover-header">
+                                <span>Recent Alertmanager Webhooks</span>
+                                <button class="text-btn" id="popover-clear-btn">Clear</button>
+                            </div>
+                            <div class="popover-list" id="popover-alerts-list">
+                                <div class="empty-popover">No recent webhook events.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Manual Refresh -->
+                    <button class="btn btn-secondary" id="refresh-btn" title="Refresh metrics from Prometheus">
+                        <svg id="refresh-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                        <span>Sync</span>
+                    </button>
+
+                    <!-- Auto Refresh Toggle -->
+                    <div class="auto-refresh-wrap">
+                        <select id="auto-refresh-select" class="select-control">
+                            <option value="5000" selected>Auto 5s</option>
+                            <option value="10000">Auto 10s</option>
+                            <option value="30000">Auto 30s</option>
+                            <option value="0">Paused</option>
+                        </select>
+                    </div>
+
+                    <span class="last-sync-text" id="last-sync-text">--:--:--</span>
                 </div>
+            </header>
+
+            <!-- Disconnection Warning Banner (Honest Fallback) -->
+            <div id="connection-banner" class="connection-banner hidden">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                <span id="connection-banner-msg">Observability backend unreachable. Live metrics unavailable.</span>
             </div>
+
+            <!-- Main Content Container with Tabbed Views -->
+            <main class="content-body">
+                <!-- ================================================= -->
+                <!-- VIEW 1: OVERVIEW DASHBOARD                        -->
+                <!-- ================================================= -->
+                <section class="view-panel active" id="view-overview">
+                    <div class="view-header">
+                        <div>
+                            <h2>Observability Overview</h2>
+                            <p class="view-subtitle">Real-time telemetry and health across VM host and microservices</p>
+                        </div>
+                        <div class="quick-sim-bar">
+                            <button class="btn btn-sm btn-simulate" id="btn-quick-traffic">Test 200 OK</button>
+                            <button class="btn btn-sm btn-simulate btn-warn" id="btn-quick-error">Trigger 500</button>
+                            <button class="btn btn-sm btn-simulate btn-crit" id="btn-quick-cpu">Stress CPU</button>
+                        </div>
+                    </div>
+
+                    <!-- 6 Hero Metric Cards Grid -->
+                    <div class="hero-grid">
+                        <!-- Card 1: CPU Utilization -->
+                        <div class="hero-card" id="card-hero-cpu">
+                            <div class="hero-card-top">
+                                <div class="hero-icon cpu-icon">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/></svg>
+                                </div>
+                                <span class="hero-badge badge-neutral" id="badge-hero-cpu">Normal</span>
+                            </div>
+                            <div class="hero-title">CPU Utilization</div>
+                            <div class="hero-val-wrap">
+                                <span class="hero-val" id="val-hero-cpu">--</span>
+                                <span class="hero-unit">%</span>
+                            </div>
+                            <div class="hero-subtext" id="sub-hero-cpu">Load 1m: -- · 2 vCPUs</div>
+                            <div class="hero-progress"><div class="progress-fill" id="prog-hero-cpu" style="width: 0%"></div></div>
+                        </div>
+
+                        <!-- Card 2: Memory Usage -->
+                        <div class="hero-card" id="card-hero-mem">
+                            <div class="hero-card-top">
+                                <div class="hero-icon mem-icon">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 19v-3"/><path d="M10 19v-3"/><path d="M14 19v-3"/><path d="M18 19v-3"/><rect x="2" y="5" width="20" height="10" rx="2"/></svg>
+                                </div>
+                                <span class="hero-badge badge-neutral" id="badge-hero-mem">Normal</span>
+                            </div>
+                            <div class="hero-title">Memory Utilization</div>
+                            <div class="hero-val-wrap">
+                                <span class="hero-val" id="val-hero-mem">--</span>
+                                <span class="hero-unit">%</span>
+                            </div>
+                            <div class="hero-subtext" id="sub-hero-mem">-- MB / -- MB allocated</div>
+                            <div class="hero-progress"><div class="progress-fill" id="prog-hero-mem" style="width: 0%"></div></div>
+                        </div>
+
+                        <!-- Card 3: Disk Utilization -->
+                        <div class="hero-card" id="card-hero-disk">
+                            <div class="hero-card-top">
+                                <div class="hero-icon disk-icon">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path></svg>
+                                </div>
+                                <span class="hero-badge badge-neutral" id="badge-hero-disk">Normal</span>
+                            </div>
+                            <div class="hero-title">Disk Utilization</div>
+                            <div class="hero-val-wrap">
+                                <span class="hero-val" id="val-hero-disk">--</span>
+                                <span class="hero-unit">%</span>
+                            </div>
+                            <div class="hero-subtext" id="sub-hero-disk">-- GB used of -- GB rootfs</div>
+                            <div class="hero-progress"><div class="progress-fill" id="prog-hero-disk" style="width: 0%"></div></div>
+                        </div>
+
+                        <!-- Card 4: Network Activity -->
+                        <div class="hero-card" id="card-hero-net">
+                            <div class="hero-card-top">
+                                <div class="hero-icon net-icon">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                                </div>
+                                <span class="hero-badge badge-neutral" id="badge-hero-net">Live</span>
+                            </div>
+                            <div class="hero-title">Network Throughput</div>
+                            <div class="hero-val-wrap">
+                                <span class="hero-val" id="val-hero-net">--</span>
+                                <span class="hero-unit">B/s</span>
+                            </div>
+                            <div class="hero-subtext" id="sub-hero-net">Rx: -- B/s · Tx: -- B/s</div>
+                            <div class="hero-progress"><div class="progress-fill net-fill" style="width: 100%"></div></div>
+                        </div>
+
+                        <!-- Card 5: Active Alerts -->
+                        <div class="hero-card" id="card-hero-alerts">
+                            <div class="hero-card-top">
+                                <div class="hero-icon alert-icon">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                                </div>
+                                <span class="hero-badge badge-success" id="badge-hero-alerts">0 Firing</span>
+                            </div>
+                            <div class="hero-title">Active Alerts</div>
+                            <div class="hero-val-wrap">
+                                <span class="hero-val" id="val-hero-alerts">0</span>
+                                <span class="hero-unit">firing</span>
+                            </div>
+                            <div class="hero-subtext" id="sub-hero-alerts">0 Warning · 0 Critical</div>
+                            <div class="hero-progress"><div class="progress-fill alert-fill" id="prog-hero-alerts" style="width: 0%"></div></div>
+                        </div>
+
+                        <!-- Card 6: Monitored Services -->
+                        <div class="hero-card" id="card-hero-services">
+                            <div class="hero-card-top">
+                                <div class="hero-icon srv-icon">
+                                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                                </div>
+                                <span class="hero-badge badge-success" id="badge-hero-services">All UP</span>
+                            </div>
+                            <div class="hero-title">Monitored Services</div>
+                            <div class="hero-val-wrap">
+                                <span class="hero-val" id="val-hero-services">4/4</span>
+                                <span class="hero-unit">UP</span>
+                            </div>
+                            <div class="hero-subtext" id="sub-hero-services">Web, Prometheus, Alertmanager, Node Exporter</div>
+                            <div class="hero-progress"><div class="progress-fill srv-fill" id="prog-hero-services" style="width: 100%"></div></div>
+                        </div>
+                    </div>
+
+                    <!-- ============================================= -->
+                    <!-- SECTION 3: MONITORING SERVICES CARDS          -->
+                    <!-- ============================================= -->
+                    <div class="monitoring-services-section mt-5" id="monitoring-services-section">
+                        <div class="section-header-bar">
+                            <div class="section-title-wrap">
+                                <div class="section-title-icon">
+                                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                                </div>
+                                <div>
+                                    <h3 class="section-title">Monitoring Services</h3>
+                                    <p class="section-desc">Core time-series engine, visualizers, alert dispatcher, and host probes</p>
+                                </div>
+                            </div>
+                            <div class="services-global-badge">
+                                <span class="badge-status-dot checking" id="services-global-dot"></span>
+                                <span class="badge-status-label" id="services-global-text">Checking Services...</span>
+                            </div>
+                        </div>
+
+                        <div class="monitoring-services-grid" id="monitoring-services-grid">
+                            <!-- Card 1: Prometheus -->
+                            <div class="monitoring-service-card card-prom" id="card-service-prom">
+                                <div class="service-card-top">
+                                    <div class="service-brand">
+                                        <div class="service-icon-box prom-accent">
+                                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="4"></circle><line x1="4.93" y1="4.93" x2="9.17" y2="9.17"></line><line x1="14.83" y1="9.17" x2="19.07" y2="4.93"></line><line x1="14.83" y1="14.83" x2="19.07" y2="19.07"></line><line x1="4.93" y1="19.07" x2="9.17" y2="14.83"></line></svg>
+                                        </div>
+                                        <div class="service-identity">
+                                            <div class="service-name-row">
+                                                <h4 class="service-name">Prometheus</h4>
+                                                <span class="service-port-tag">:9090</span>
+                                            </div>
+                                            <span class="service-endpoint-sub">http://localhost:9090</span>
+                                        </div>
+                                    </div>
+                                    <div class="service-status-pill checking" id="status-pill-prom">
+                                        <span class="status-dot"></span>
+                                        <span class="status-text" id="status-text-prom">CHECKING</span>
+                                    </div>
+                                </div>
+
+                                <p class="service-purpose">Metrics collection and monitoring.</p>
+
+                                <div class="service-meta-footer">
+                                    <div class="service-diag" id="diag-prom">
+                                        <span class="diag-label">Status:</span>
+                                        <span class="diag-val" id="diag-val-prom">Probing health...</span>
+                                    </div>
+                                    <a href="http://localhost:9090" target="_blank" rel="noopener noreferrer" class="btn btn-service-launch btn-prom" id="btn-launch-prom">
+                                        <span>Open Prometheus</span>
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Card 2: Grafana -->
+                            <div class="monitoring-service-card card-grafana" id="card-service-grafana">
+                                <div class="service-card-top">
+                                    <div class="service-brand">
+                                        <div class="service-icon-box grafana-accent">
+                                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M3 9h18"></path><path d="M9 21V9"></path><path d="M15 13v4"></path><path d="M12 15v2"></path></svg>
+                                        </div>
+                                        <div class="service-identity">
+                                            <div class="service-name-row">
+                                                <h4 class="service-name">Grafana</h4>
+                                                <span class="service-port-tag">:3000</span>
+                                            </div>
+                                            <span class="service-endpoint-sub">http://localhost:3000</span>
+                                        </div>
+                                    </div>
+                                    <div class="service-status-pill checking" id="status-pill-grafana">
+                                        <span class="status-dot"></span>
+                                        <span class="status-text" id="status-text-grafana">CHECKING</span>
+                                    </div>
+                                </div>
+
+                                <p class="service-purpose">Monitoring dashboards and visualization.</p>
+
+                                <div class="service-meta-footer">
+                                    <div class="service-diag" id="diag-grafana">
+                                        <span class="diag-label">Status:</span>
+                                        <span class="diag-val" id="diag-val-grafana">Probing health...</span>
+                                    </div>
+                                    <a href="http://localhost:3000" target="_blank" rel="noopener noreferrer" class="btn btn-service-launch btn-grafana" id="btn-launch-grafana">
+                                        <span>Open Grafana</span>
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Card 3: Alertmanager -->
+                            <div class="monitoring-service-card card-am" id="card-service-am">
+                                <div class="service-card-top">
+                                    <div class="service-brand">
+                                        <div class="service-icon-box am-accent">
+                                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path><circle cx="18" cy="4" r="3" fill="#EF4444" stroke="none"></circle></svg>
+                                        </div>
+                                        <div class="service-identity">
+                                            <div class="service-name-row">
+                                                <h4 class="service-name">Alertmanager</h4>
+                                                <span class="service-port-tag">:9093</span>
+                                            </div>
+                                            <span class="service-endpoint-sub">http://localhost:9093</span>
+                                        </div>
+                                    </div>
+                                    <div class="service-status-pill checking" id="status-pill-am">
+                                        <span class="status-dot"></span>
+                                        <span class="status-text" id="status-text-am">CHECKING</span>
+                                    </div>
+                                </div>
+
+                                <p class="service-purpose">Alert management and notifications.</p>
+
+                                <div class="service-meta-footer">
+                                    <div class="service-diag" id="diag-am">
+                                        <span class="diag-label">Status:</span>
+                                        <span class="diag-val" id="diag-val-am">Probing health...</span>
+                                    </div>
+                                    <a href="http://localhost:9093" target="_blank" rel="noopener noreferrer" class="btn btn-service-launch btn-am" id="btn-launch-am">
+                                        <span>Open Alertmanager</span>
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Card 4: Node Exporter -->
+                            <div class="monitoring-service-card card-ne" id="card-service-ne">
+                                <div class="service-card-top">
+                                    <div class="service-brand">
+                                        <div class="service-icon-box ne-accent">
+                                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line><path d="M13 6h5"></path><path d="M13 18h5"></path></svg>
+                                        </div>
+                                        <div class="service-identity">
+                                            <div class="service-name-row">
+                                                <h4 class="service-name">Node Exporter</h4>
+                                                <span class="service-port-tag">:9100</span>
+                                            </div>
+                                            <span class="service-endpoint-sub">http://localhost:9100/metrics</span>
+                                        </div>
+                                    </div>
+                                    <div class="service-status-pill checking" id="status-pill-ne">
+                                        <span class="status-dot"></span>
+                                        <span class="status-text" id="status-text-ne">CHECKING</span>
+                                    </div>
+                                </div>
+
+                                <p class="service-purpose">Host-level CPU, memory, disk, and network metrics.</p>
+
+                                <div class="service-meta-footer">
+                                    <div class="service-diag" id="diag-ne">
+                                        <span class="diag-label">Status:</span>
+                                        <span class="diag-val" id="diag-val-ne">Probing health...</span>
+                                    </div>
+                                    <a href="http://localhost:9100/metrics" target="_blank" rel="noopener noreferrer" class="btn btn-service-launch btn-ne" id="btn-launch-ne">
+                                        <span>View Metrics</span>
+                                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ============================================= -->
+                    <!-- SECTION 4: CPU AND MEMORY CHARTS              -->
+                    <!-- ============================================= -->
+                    <div class="dashboard-split-row mt-5">
+                        <div class="panel-card flex-1">
+                            <div class="panel-card-header">
+                                <div class="panel-title-group">
+                                    <h3>CPU Utilization Trend</h3>
+                                    <span class="panel-desc">Real-time VM CPU utilization (%)</span>
+                                </div>
+                                <span class="badge badge-purple">Live Telemetry</span>
+                            </div>
+                            <div class="chart-container" style="height: 240px;">
+                                <canvas id="overview-cpu-chart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="panel-card flex-1">
+                            <div class="panel-card-header">
+                                <div class="panel-title-group">
+                                    <h3>Memory Utilization Trend</h3>
+                                    <span class="panel-desc">Physical RAM consumption vs. available</span>
+                                </div>
+                                <span class="badge badge-cyan">Live Telemetry</span>
+                            </div>
+                            <div class="chart-container" style="height: 240px;">
+                                <canvas id="overview-memory-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ============================================= -->
+                    <!-- SECTION 5: DISK AND NETWORK CHARTS            -->
+                    <!-- ============================================= -->
+                    <div class="dashboard-split-row mt-4">
+                        <div class="panel-card flex-1">
+                            <div class="panel-card-header">
+                                <div class="panel-title-group">
+                                    <h3>Disk Capacity & Storage</h3>
+                                    <span class="panel-desc">Root filesystem allocation and persistent blocks</span>
+                                </div>
+                                <span class="badge badge-neutral">ext4 / rootfs</span>
+                            </div>
+                            <div class="disk-progress-large-wrap" style="padding: 1.25rem 0 0.5rem 0;">
+                                <div class="disk-progress-bar" style="height: 16px; border-radius: 8px;">
+                                    <div class="disk-progress-fill" id="ov-disk-bar" style="width: 0%"></div>
+                                </div>
+                                <div class="disk-progress-labels mt-2">
+                                    <span id="ov-disk-lbl-used">Used: -- GB</span>
+                                    <span id="ov-disk-lbl-pct" style="font-weight: 600; color: #F1F5F9;">--%</span>
+                                    <span id="ov-disk-lbl-free">Free: -- GB</span>
+                                </div>
+                            </div>
+                            <div class="disk-stats-grid mt-3">
+                                <div class="disk-stat-mini">
+                                    <span class="stat-mini-label">Partition Size</span>
+                                    <span class="stat-mini-val" id="ov-disk-total-val">-- GB</span>
+                                </div>
+                                <div class="disk-stat-mini">
+                                    <span class="stat-mini-label">Mount Point</span>
+                                    <span class="stat-mini-val">/ (rootfs)</span>
+                                </div>
+                                <div class="disk-stat-mini">
+                                    <span class="stat-mini-label">Excluded</span>
+                                    <span class="stat-mini-val">tmpfs / overlay</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel-card flex-1">
+                            <div class="panel-card-header">
+                                <div class="panel-title-group">
+                                    <h3>Network Bandwidth Activity</h3>
+                                    <span class="panel-desc">Throughput rate (Inbound Rx vs. Outbound Tx)</span>
+                                </div>
+                                <span class="badge badge-neutral">Live Window</span>
+                            </div>
+                            <div class="chart-container" style="height: 240px;">
+                                <canvas id="overview-network-chart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ============================================= -->
+                    <!-- SECTION 6: RECENT ALERTS                      -->
+                    <!-- ============================================= -->
+                    <div class="panel-card mt-4">
+                        <div class="panel-card-header">
+                            <div class="panel-title-group">
+                                <h3>Recent Alerts & Webhook Events</h3>
+                                <span class="panel-desc">Active alert conditions and dispatched Alertmanager events</span>
+                            </div>
+                            <span class="badge badge-neutral" id="ov-alerts-summary-badge">0 Alerts Firing</span>
+                        </div>
+                        <div class="overview-alerts-stream" id="overview-recent-alerts">
+                            <div class="empty-state">No firing alerts detected. All systems operating normally.</div>
+                        </div>
+                    </div>
+
+                    <!-- ============================================= -->
+                    <!-- SECTION 7: SERVICE HEALTH INFORMATION         -->
+                    <!-- ============================================= -->
+                    <div class="panel-card mt-4">
+                        <div class="panel-card-header">
+                            <div class="panel-title-group">
+                                <h3>Scrape Target Health & Endpoints</h3>
+                                <span class="panel-desc">Real-time health status across all Prometheus scrape jobs</span>
+                            </div>
+                            <span class="badge badge-success" id="targets-badge">4 Targets UP</span>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table" id="overview-targets-table">
+                                <thead>
+                                    <tr>
+                                        <th>Target Job</th>
+                                        <th>Endpoint Instance</th>
+                                        <th>Health</th>
+                                        <th>Scrape Duration</th>
+                                        <th>Last Scrape</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="overview-targets-tbody">
+                                    <tr><td colspan="5" class="table-empty">Connecting to Prometheus targets...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================================================= -->
+                <!-- VIEW 2: INFRASTRUCTURE VIEW                       -->
+                <!-- ================================================= -->
+                <section class="view-panel" id="view-infrastructure">
+                    <div class="view-header">
+                        <div>
+                            <h2>Infrastructure Matrix</h2>
+                            <p class="view-subtitle">Virtual Machine specifications, container states, and daemon health</p>
+                        </div>
+                    </div>
+
+                    <div class="infra-summary-grid">
+                        <div class="infra-spec-card">
+                            <div class="infra-label">VIRTUAL MACHINE</div>
+                            <div class="infra-value" id="infra-vm-status">Ubuntu 22.04 LTS (Jammy)</div>
+                            <div class="infra-detail">Vagrant + VirtualBox · Host-Only IP <code>192.168.56.10</code></div>
+                        </div>
+                        <div class="infra-spec-card">
+                            <div class="infra-label">COMPUTE CORES</div>
+                            <div class="infra-value" id="infra-cpus">2 vCPUs Allocated</div>
+                            <div class="infra-detail">Safe allocation for 8 GB Windows Laptop</div>
+                        </div>
+                        <div class="infra-spec-card">
+                            <div class="infra-label">RAM ALLOCATION</div>
+                            <div class="infra-value" id="infra-ram">2,048 MB RAM</div>
+                            <div class="infra-detail">VirtualBox memory constraint enabled</div>
+                        </div>
+                        <div class="infra-spec-card">
+                            <div class="infra-label">CONTAINER ENGINE</div>
+                            <div class="infra-value">Docker Compose v2</div>
+                            <div class="infra-detail">Bridge network: <code>cloudpulse-net</code></div>
+                        </div>
+                    </div>
+
+                    <!-- Containers Health Matrix -->
+                    <div class="panel-card mt-4">
+                        <div class="panel-card-header">
+                            <div class="panel-title-group">
+                                <h3>Sandbox Service Components</h3>
+                                <span class="panel-desc">Uptime and network bindings for all 5 monitoring containers</span>
+                            </div>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Component Name</th>
+                                        <th>Container</th>
+                                        <th>Port Binding</th>
+                                        <th>Status</th>
+                                        <th>Health Endpoint</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="infra-services-tbody">
+                                    <tr>
+                                        <td><strong>CloudPulse Web</strong></td>
+                                        <td><code>cloudpulse-web</code></td>
+                                        <td><code>5000:5000</code></td>
+                                        <td><span class="badge badge-success">UP</span></td>
+                                        <td><code>http://localhost:5000</code></td>
+                                        <td><a href="http://localhost:5000" target="_blank" class="btn btn-xs btn-secondary">Open</a></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Prometheus Server</strong></td>
+                                        <td><code>cloudpulse-prometheus</code></td>
+                                        <td><code>9090:9090</code></td>
+                                        <td><span class="badge badge-success" id="infra-prom-badge">UP</span></td>
+                                        <td><code>http://localhost:9090/-/healthy</code></td>
+                                        <td><a href="http://localhost:9090" target="_blank" class="btn btn-xs btn-secondary">Open</a></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Alertmanager</strong></td>
+                                        <td><code>cloudpulse-alertmanager</code></td>
+                                        <td><code>9093:9093</code></td>
+                                        <td><span class="badge badge-success" id="infra-am-badge">UP</span></td>
+                                        <td><code>http://localhost:9093/-/healthy</code></td>
+                                        <td><a href="http://localhost:9093" target="_blank" class="btn btn-xs btn-secondary">Open</a></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Grafana Dashboards</strong></td>
+                                        <td><code>cloudpulse-grafana</code></td>
+                                        <td><code>3000:3000</code></td>
+                                        <td><span class="badge badge-success" id="infra-grafana-badge">UP</span></td>
+                                        <td><code>http://localhost:3000/api/health</code></td>
+                                        <td><a href="http://localhost:3000" target="_blank" class="btn btn-xs btn-secondary">Open</a></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Node Exporter</strong></td>
+                                        <td><code>cloudpulse-node-exporter</code></td>
+                                        <td><code>9100:9100</code></td>
+                                        <td><span class="badge badge-success" id="infra-ne-badge">UP</span></td>
+                                        <td><code>http://localhost:9100/metrics</code></td>
+                                        <td><a href="http://localhost:9100/metrics" target="_blank" class="btn btn-xs btn-secondary">Open</a></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================================================= -->
+                <!-- VIEW 3: CPU MONITORING VIEW                       -->
+                <!-- ================================================= -->
+                <section class="view-panel" id="view-cpu">
+                    <div class="view-header">
+                        <div>
+                            <h2>CPU Utilization &amp; Load</h2>
+                            <p class="view-subtitle">Genuine host-level CPU metrics collected via Node Exporter kernel probes</p>
+                        </div>
+                        <button class="btn btn-warning" id="btn-trigger-cpu-stress">Safe CPU Stress Test (15s)</button>
+                    </div>
+
+                    <div class="metrics-row-4">
+                        <div class="metric-card-sm">
+                            <span class="metric-sm-title">Current CPU Utilization</span>
+                            <span class="metric-sm-val" id="val-cpu-current">--%</span>
+                            <span class="metric-sm-sub" id="sub-cpu-alert">Threshold: 80% (Warning)</span>
+                        </div>
+                        <div class="metric-card-sm">
+                            <span class="metric-sm-title">Load Average 1m</span>
+                            <span class="metric-sm-val" id="val-cpu-load1">--</span>
+                            <span class="metric-sm-sub">Short-term queue depth</span>
+                        </div>
+                        <div class="metric-card-sm">
+                            <span class="metric-sm-title">Load Average 5m</span>
+                            <span class="metric-sm-val" id="val-cpu-load5">--</span>
+                            <span class="metric-sm-sub">Medium-term trend</span>
+                        </div>
+                        <div class="metric-card-sm">
+                            <span class="metric-sm-title">Load Average 15m</span>
+                            <span class="metric-sm-val" id="val-cpu-load15">--</span>
+                            <span class="metric-sm-sub">Long-term capacity</span>
+                        </div>
+                    </div>
+
+                    <div class="panel-card mt-4">
+                        <div class="panel-card-header">
+                            <div class="panel-title-group">
+                                <h3>CPU Utilization History (%)</h3>
+                                <span class="panel-desc">PromQL: <code>100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[1m])) * 100)</code></span>
+                            </div>
+                        </div>
+                        <div class="chart-container" style="height: 320px;">
+                            <canvas id="cpu-chart"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================================================= -->
+                <!-- VIEW 4: MEMORY MONITORING VIEW                    -->
+                <!-- ================================================= -->
+                <section class="view-panel" id="view-memory">
+                    <div class="view-header">
+                        <div>
+                            <h2>Memory Allocation &amp; Buffers</h2>
+                            <p class="view-subtitle">Physical RAM metrics scraped from Linux <code>/proc/meminfo</code></p>
+                        </div>
+                        <button class="btn btn-warning" id="btn-trigger-mem-test">Safe Memory Test (120 MB)</button>
+                    </div>
+
+                    <div class="metrics-row-4">
+                        <div class="metric-card-sm">
+                            <span class="metric-sm-title">Memory Utilization</span>
+                            <span class="metric-sm-val" id="val-mem-pct">--%</span>
+                            <span class="metric-sm-sub">Threshold: 85% (Warning)</span>
+                        </div>
+                        <div class="metric-card-sm">
+                            <span class="metric-sm-title">Total Allocated</span>
+                            <span class="metric-sm-val" id="val-mem-total">-- MB</span>
+                            <span class="metric-sm-sub">Vagrant VM RAM allocation</span>
+                        </div>
+                        <div class="metric-card-sm">
+                            <span class="metric-sm-title">Used Memory</span>
+                            <span class="metric-sm-val" id="val-mem-used">-- MB</span>
+                            <span class="metric-sm-sub">Active OS &amp; container buffers</span>
+                        </div>
+                        <div class="metric-card-sm">
+                            <span class="metric-sm-title">Available Memory</span>
+                            <span class="metric-sm-val" id="val-mem-avail">-- MB</span>
+                            <span class="metric-sm-sub">Free for immediate allocation</span>
+                        </div>
+                    </div>
+
+                    <div class="panel-card mt-4">
+                        <div class="panel-card-header">
+                            <div class="panel-title-group">
+                                <h3>Memory Utilization Trend (%)</h3>
+                                <span class="panel-desc">PromQL: <code>((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * 100</code></span>
+                            </div>
+                        </div>
+                        <div class="chart-container" style="height: 320px;">
+                            <canvas id="memory-chart"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================================================= -->
+                <!-- VIEW 5: DISK MONITORING VIEW                      -->
+                <!-- ================================================= -->
+                <section class="view-panel" id="view-disk">
+                    <div class="view-header">
+                        <div>
+                            <h2>Disk Capacity &amp; Filesystem Health</h2>
+                            <p class="view-subtitle">Mounted volumes and root filesystem capacity on the Ubuntu sandbox</p>
+                        </div>
+                    </div>
+
+                    <div class="metrics-row-4">
+                        <div class="metric-card-sm">
+                            <span class="metric-sm-title">Disk Utilization</span>
+                            <span class="metric-sm-val" id="val-disk-pct">--%</span>
+                            <span class="metric-sm-sub">Threshold: 80% (Warning)</span>
+                        </div>
+                        <div class="metric-card-sm">
+                            <span class="metric-sm-title">Total Disk Capacity</span>
+                            <span class="metric-sm-val" id="val-disk-total">-- GB</span>
+                            <span class="metric-sm-sub">Primary partition size</span>
+                        </div>
+                        <div class="metric-card-sm">
+                            <span class="metric-sm-title">Used Disk Space</span>
+                            <span class="metric-sm-val" id="val-disk-used">-- GB</span>
+                            <span class="metric-sm-sub">System &amp; container storage</span>
+                        </div>
+                        <div class="metric-card-sm">
+                            <span class="metric-sm-title">Available Disk Space</span>
+                            <span class="metric-sm-val" id="val-disk-avail">-- GB</span>
+                            <span class="metric-sm-sub">Free persistent blocks</span>
+                        </div>
+                    </div>
+
+                    <div class="panel-card mt-4">
+                        <div class="panel-card-header">
+                            <div class="panel-title-group">
+                                <h3>Storage Capacity Distribution</h3>
+                                <span class="panel-desc">Excludes ephemeral <code>tmpfs</code>, <code>overlay</code>, and <code>squashfs</code> mounts</span>
+                            </div>
+                        </div>
+                        <div class="disk-progress-large-wrap">
+                            <div class="disk-progress-bar">
+                                <div class="disk-progress-fill" id="disk-main-prog" style="width: 0%"></div>
+                            </div>
+                            <div class="disk-progress-labels">
+                                <span id="disk-lbl-used">Used: -- GB</span>
+                                <span id="disk-lbl-pct">--% utilized</span>
+                                <span id="disk-lbl-free">Free: -- GB</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================================================= -->
+                <!-- VIEW 6: NETWORK MONITORING VIEW                   -->
+                <!-- ================================================= -->
+                <section class="view-panel" id="view-network">
+                    <div class="view-header">
+                        <div>
+                            <h2>Network Traffic &amp; Bandwidth</h2>
+                            <p class="view-subtitle">Inbound and outbound network bandwidth scraped from virtual interfaces</p>
+                        </div>
+                    </div>
+
+                    <div class="metrics-row-4">
+                        <div class="metric-card-sm">
+                            <span class="metric-sm-title">Receive Bandwidth (Rx)</span>
+                            <span class="metric-sm-val" id="val-net-rx">-- B/s</span>
+                            <span class="metric-sm-sub">Inbound traffic rate</span>
+                        </div>
+                        <div class="metric-card-sm">
+                            <span class="metric-sm-title">Transmit Bandwidth (Tx)</span>
+                            <span class="metric-sm-val" id="val-net-tx">-- B/s</span>
+                            <span class="metric-sm-sub">Outbound traffic rate</span>
+                        </div>
+                        <div class="metric-card-sm">
+                            <span class="metric-sm-title">HTTP Request Throughput</span>
+                            <span class="metric-sm-val" id="val-net-reqs">-- req/s</span>
+                            <span class="metric-sm-sub">CloudPulse web ingress</span>
+                        </div>
+                        <div class="metric-card-sm">
+                            <span class="metric-sm-title">Cumulative Requests</span>
+                            <span class="metric-sm-val" id="val-net-total-reqs">--</span>
+                            <span class="metric-sm-sub">Total HTTP hits</span>
+                        </div>
+                    </div>
+
+                    <div class="panel-card mt-4">
+                        <div class="panel-card-header">
+                            <div class="panel-title-group">
+                                <h3>Network Receive vs. Transmit (Bytes / Second)</h3>
+                                <span class="panel-desc">Real-time Node Exporter rate comparison</span>
+                            </div>
+                        </div>
+                        <div class="chart-container" style="height: 320px;">
+                            <canvas id="network-chart"></canvas>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================================================= -->
+                <!-- VIEW 7: ALERTS MANAGEMENT VIEW                    -->
+                <!-- ================================================= -->
+                <section class="view-panel" id="view-alerts">
+                    <div class="view-header">
+                        <div>
+                            <h2>Alert Management Center</h2>
+                            <p class="view-subtitle">Declarative Prometheus alert rules and live Alertmanager notifications</p>
+                        </div>
+                        <div class="alert-filter-group">
+                            <button class="filter-btn active" data-filter="all">All</button>
+                            <button class="filter-btn" data-filter="firing">Firing</button>
+                            <button class="filter-btn" data-filter="pending">Pending</button>
+                            <button class="filter-btn" data-filter="resolved">Resolved</button>
+                            <button class="filter-btn" data-filter="critical">Critical</button>
+                            <button class="filter-btn" data-filter="warning">Warning</button>
+                        </div>
+                    </div>
+
+                    <!-- Split View: Prometheus Rules on Left, Webhooks on Right -->
+                    <div class="dashboard-split-row">
+                        <!-- Left: Evaluated Prometheus Alert Rules -->
+                        <div class="panel-card flex-1">
+                            <div class="panel-card-header">
+                                <div class="panel-title-group">
+                                    <h3>Evaluated Alert Rules</h3>
+                                    <span class="panel-desc">Active alert states evaluated by Prometheus</span>
+                                </div>
+                                <span class="badge badge-neutral" id="prom-alerts-count">0 Rules</span>
+                            </div>
+                            <div class="alerts-container-scroll" id="prom-alerts-container">
+                                <div class="empty-state">Loading active alert rules...</div>
+                            </div>
+                        </div>
+
+                        <!-- Right: Alertmanager Webhook Delivery Stream -->
+                        <div class="panel-card flex-1">
+                            <div class="panel-card-header">
+                                <div class="panel-title-group">
+                                    <h3>Alertmanager Webhook Stream</h3>
+                                    <span class="panel-desc">Dispatched to <code>/api/alerts/webhook</code></span>
+                                </div>
+                                <span class="badge badge-neutral" id="webhook-alerts-count">0 Received</span>
+                            </div>
+                            <div class="alerts-container-scroll" id="webhook-alerts-container">
+                                <div class="empty-state">No webhook notifications received yet.</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================================================= -->
+                <!-- VIEW 8: SERVICES TARGETS VIEW                     -->
+                <!-- ================================================= -->
+                <section class="view-panel" id="view-services">
+                    <div class="view-header">
+                        <div>
+                            <h2>Monitored Scrape Targets</h2>
+                            <p class="view-subtitle">Detailed Prometheus health status across all configured exporters</p>
+                        </div>
+                    </div>
+                    <div class="panel-card">
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Service Job</th>
+                                        <th>Target Address</th>
+                                        <th>Health Status</th>
+                                        <th>Scrape Duration</th>
+                                        <th>Last Successful Scrape</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="services-targets-tbody">
+                                    <tr><td colspan="5" class="table-empty">Loading scrape targets...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ================================================= -->
+                <!-- VIEW 9: SIMULATOR & SETTINGS VIEW                 -->
+                <!-- ================================================= -->
+                <section class="view-panel" id="view-settings">
+                    <div class="view-header">
+                        <div>
+                            <h2>Scenario &amp; Alert Simulator</h2>
+                            <p class="view-subtitle">Generate synthetic workload and test Prometheus alert state transitions</p>
+                        </div>
+                    </div>
+
+                    <div class="simulator-control-grid">
+                        <div class="sim-card">
+                            <h4>Normal HTTP Traffic</h4>
+                            <p>Dispatches 5 concurrent 200 OK requests to verify request counter and latency histograms.</p>
+                            <button class="btn btn-success" id="sim-btn-traffic">Generate 200 OK Traffic</button>
+                        </div>
+                        <div class="sim-card">
+                            <h4>HTTP 500 Error Burst</h4>
+                            <p>Simulates an HTTP 500 internal server fault to trigger the <code>HighHttpErrorRate</code> alert.</p>
+                            <button class="btn btn-danger" id="sim-btn-error">Simulate HTTP 500 Error</button>
+                        </div>
+                        <div class="sim-card">
+                            <h4>High Latency Spike</h4>
+                            <p>Simulates a 1.2s delay on slow endpoints to trigger the <code>HighRequestLatency</code> alert.</p>
+                            <button class="btn btn-warning" id="sim-btn-slow">Trigger 1.2s Latency Spike</button>
+                        </div>
+                        <div class="sim-card">
+                            <h4>CPU Stress Load</h4>
+                            <p>Runs safe multi-threaded math calculations for 15s to test the <code>HighCpuUsage</code> alert.</p>
+                            <button class="btn btn-warning" id="sim-btn-cpu">Trigger Safe CPU Stress (15s)</button>
+                        </div>
+                        <div class="sim-card">
+                            <h4>Memory Allocation</h4>
+                            <p>Safely allocates a temporary 120MB memory buffer for 15s with automatic garbage collection.</p>
+                            <button class="btn btn-warning" id="sim-btn-mem">Allocate 120 MB RAM (15s)</button>
+                        </div>
+                        <div class="sim-card">
+                            <h4>Reset Alert History</h4>
+                            <p>Clears the in-memory ring buffer of webhook events in the dashboard controller.</p>
+                            <button class="btn btn-secondary" id="sim-btn-clear">Clear Webhook Log</button>
+                        </div>
+                    </div>
+
+                    <div class="panel-card mt-4">
+                        <div class="panel-card-header">
+                            <div class="panel-title-group">
+                                <h3>Simulator Activity Console</h3>
+                                <span class="panel-desc">Real-time log of triggered actions and test results</span>
+                            </div>
+                            <button class="btn btn-xs btn-secondary" id="sim-clear-log-btn">Clear Console</button>
+                        </div>
+                        <div class="terminal-box" id="sim-terminal">
+                            <div class="terminal-line log-info">[System Ready] Select an action above to generate synthetic traffic or test alert conditions.</div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+
+            <!-- Bottom System Status Bar -->
+            <footer class="app-footer">
+                <div class="footer-left">
+                    <span>CloudPulse Observability v2.0</span>
+                    <span class="footer-sep">&bull;</span>
+                    <span id="footer-uptime">Uptime: --</span>
+                    <span class="footer-sep">&bull;</span>
+                    <span>Prometheus &bull; Alertmanager &bull; Grafana &bull; Node Exporter</span>
+                </div>
+                <div class="footer-right">
+                    <span id="footer-sync">Last sync: --:--:--</span>
+                </div>
+            </footer>
         </div>
-
-        <!-- Main Content -->
-        <main class="dashboard-container">
-            <!-- Key Metric Cards Row -->
-            <section class="metrics-grid">
-                <!-- Total Requests -->
-                <div class="metric-card">
-                    <div class="metric-card-header">
-                        <span class="metric-title">Total HTTP Requests</span>
-                        <span class="metric-badge" id="badge-total-requests">PromQL</span>
-                    </div>
-                    <div class="metric-value-wrap">
-                        <span class="metric-value" id="val-total-requests">--</span>
-                        <span class="metric-unit">requests</span>
-                    </div>
-                    <div class="metric-subtext">Cumulative scraped count from Flask</div>
-                </div>
-
-                <!-- Request Rate -->
-                <div class="metric-card">
-                    <div class="metric-card-header">
-                        <span class="metric-title">Request Throughput</span>
-                        <span class="metric-badge" id="badge-request-rate">1m rate</span>
-                    </div>
-                    <div class="metric-value-wrap">
-                        <span class="metric-value" id="val-request-rate">--</span>
-                        <span class="metric-unit">req / sec</span>
-                    </div>
-                    <div class="metric-subtext">Real-time HTTP request throughput</div>
-                </div>
-
-                <!-- Error Rate -->
-                <div class="metric-card" id="card-error-rate">
-                    <div class="metric-card-header">
-                        <span class="metric-title">5xx Error Rate</span>
-                        <span class="metric-badge" id="badge-error-rate">Threshold: 10%</span>
-                    </div>
-                    <div class="metric-value-wrap">
-                        <span class="metric-value" id="val-error-rate">--</span>
-                        <span class="metric-unit">%</span>
-                    </div>
-                    <div class="metric-subtext">Calculated ratio of 5xx to total requests</div>
-                </div>
-
-                <!-- p95 Latency -->
-                <div class="metric-card" id="card-latency">
-                    <div class="metric-card-header">
-                        <span class="metric-title">p95 Latency</span>
-                        <span class="metric-badge" id="badge-latency">Threshold: 1.0s</span>
-                    </div>
-                    <div class="metric-value-wrap">
-                        <span class="metric-value" id="val-latency">--</span>
-                        <span class="metric-unit">ms</span>
-                    </div>
-                    <div class="metric-subtext">95th percentile HTTP request duration</div>
-                </div>
-            </section>
-
-            <!-- Middle Row: Scrape Targets & Simulator -->
-            <div class="content-row">
-                <!-- Target Health Section -->
-                <section class="panel targets-panel">
-                    <div class="panel-header">
-                        <div class="panel-title-wrap">
-                            <h2>Prometheus Scrape Targets</h2>
-                            <span class="panel-subtitle">Live health reported by Prometheus server</span>
-                        </div>
-                        <span id="targets-count-badge" class="badge badge-neutral">--</span>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Job Name</th>
-                                    <th>Endpoint</th>
-                                    <th>Status</th>
-                                    <th>Last Scrape</th>
-                                    <th>Scrape Duration</th>
-                                </tr>
-                            </thead>
-                            <tbody id="targets-table-body">
-                                <tr>
-                                    <td colspan="5" class="table-empty">Connecting to Prometheus targets...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <!-- Interactive Traffic & Alert Simulator -->
-                <section class="panel simulator-panel">
-                    <div class="panel-header">
-                        <div class="panel-title-wrap">
-                            <h2>Live Alert &amp; Traffic Simulator</h2>
-                            <span class="panel-subtitle">Generate real HTTP activity to verify Prometheus metrics &amp; alert rules</span>
-                        </div>
-                    </div>
-                    <div class="simulator-actions">
-                        <button class="btn btn-simulate btn-success" id="btn-sim-traffic">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                            Generate Normal Traffic (200 OK)
-                        </button>
-                        <button class="btn btn-simulate btn-danger" id="btn-sim-error">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                            Trigger 500 Error (Error Rate)
-                        </button>
-                        <button class="btn btn-simulate btn-warning" id="btn-sim-slow">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                            Trigger Slow Request (1.2s Latency)
-                        </button>
-                    </div>
-                    <div class="simulator-log-container">
-                        <div class="log-header">
-                            <span>Simulator Activity Log</span>
-                            <button id="clear-log-btn" class="text-btn">Clear Log</button>
-                        </div>
-                        <div class="terminal-log" id="sim-log">
-                            <div class="log-entry log-info">[Ready] Click an action above to generate live metrics.</div>
-                        </div>
-                    </div>
-                </section>
-            </div>
-
-            <!-- Bottom Row: Alerts Grid -->
-            <div class="content-row">
-                <!-- Prometheus Configured Alerts -->
-                <section class="panel alerts-panel">
-                    <div class="panel-header">
-                        <div class="panel-title-wrap">
-                            <h2>Prometheus Rule Status</h2>
-                            <span class="panel-subtitle">Real-time alert states evaluated by Prometheus</span>
-                        </div>
-                        <span id="alerts-count-badge" class="badge badge-neutral">--</span>
-                    </div>
-                    <div class="alerts-list" id="prom-alerts-list">
-                        <div class="empty-state">Loading active alert rules...</div>
-                    </div>
-                </section>
-
-                <!-- Alertmanager Webhook Stream -->
-                <section class="panel webhook-panel">
-                    <div class="panel-header">
-                        <div class="panel-title-wrap">
-                            <h2>Alertmanager Notifications</h2>
-                            <span class="panel-subtitle">Live events delivered via Alertmanager webhook</span>
-                        </div>
-                        <span id="webhook-count-badge" class="badge badge-neutral">--</span>
-                    </div>
-                    <div class="alerts-list" id="webhook-alerts-list">
-                        <div class="empty-state">No webhook notifications received yet.</div>
-                    </div>
-                </section>
-            </div>
-        </main>
-
-        <!-- Footer -->
-        <footer class="footer">
-            <div class="footer-left">
-                <span>CloudPulse v1.0.0</span>
-                <span class="separator">&bull;</span>
-                <span>Prometheus &bull; Alertmanager &bull; Grafana &bull; Flask</span>
-            </div>
-            <div class="footer-right">
-                <span id="last-updated-text">Last sync: --</span>
-            </div>
-        </footer>
     </div>
 
+    <!-- Application Script -->
     <script src="/static/app.js"></script>
 </body>
 </html>

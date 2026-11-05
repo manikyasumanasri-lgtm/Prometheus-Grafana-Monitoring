@@ -1,29 +1,85 @@
+
 groups:
   - name: cloudpulse_alerts
     rules:
+
+      # Alert 1: High CPU Usage
+      - alert: HighCpuUsage
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[1m])) * 100) > 80
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage detected on {{ $labels.instance }}"
+          description: "CPU usage has exceeded 80% for more than 2 minutes."
+
+      # Alert 2: High Memory Usage
+      - alert: HighMemoryUsage
+        expr: ((node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes) * 100 > 85
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage detected on {{ $labels.instance }}"
+          description: "Memory usage has exceeded 85% for more than 2 minutes."
+
+      # Alert 3: High Disk Usage
+      - alert: HighDiskUsage
+        expr: (1 - (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay"})) * 100 > 80
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High disk usage detected on {{ $labels.instance }}"
+          description: "Disk usage has exceeded 80% for more than 2 minutes."
+
+      # Alert 4: Service Down
       - alert: ServiceDown
         expr: up == 0
-        for: 20s
+        for: 30s
         labels:
           severity: critical
         annotations:
-          summary: "Instance {{ $labels.instance }} is down"
-          description: "Target {{ $labels.instance }} in job {{ $labels.job }} has been unreachable for more than 20 seconds."
+          summary: "Service {{ $labels.job }} is down"
+          description: "Target {{ $labels.instance }} has been unreachable for more than 30 seconds."
 
+      # Alert 5: Node Exporter Down
+      - alert: NodeExporterDown
+        expr: up{job="node-exporter"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Node Exporter is down on {{ $labels.instance }}"
+          description: "Node Exporter has been unreachable for more than 30 seconds."
+
+      # Alert 6: Prometheus Down
+      - alert: PrometheusDown
+        expr: absent(up{job="prometheus"}) == 1 or up{job="prometheus"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Prometheus server self-monitoring indicates down"
+          description: "Prometheus is unreachable or failing health checks."
+
+      # Alert 7: High HTTP Error Rate
       - alert: HighHttpErrorRate
-        expr: (sum by (job) (rate(flask_http_request_total{status=~"5.."}[1m])) / sum by (job) (rate(flask_http_request_total[1m]))) * 100 > 10
+        expr: (sum by (job) (rate(flask_http_request_total{status=~"5.."}[5m])) / sum by (job) (rate(flask_http_request_total[5m]))) * 100 > 10
         for: 30s
         labels:
           severity: warning
         annotations:
-          summary: "High HTTP 5xx error rate detected"
-          description: "HTTP 5xx error rate on {{ $labels.job }} is above 10% over the last minute."
+          summary: "High HTTP 5xx error rate detected on {{ $labels.job }}"
+          description: "HTTP 5xx error rate on {{ $labels.job }} is above 10% over the last five minutes."
 
+      # Alert 8: High Request Latency
       - alert: HighRequestLatency
         expr: histogram_quantile(0.95, sum by (le, job) (rate(flask_http_request_duration_seconds_bucket{endpoint="simulate_slow"}[1m]))) > 1.0
         for: 30s
         labels:
           severity: warning
         annotations:
-          summary: "High p95 request latency detected"
-          description: "95th percentile request latency exceeds 1.0s (measured at {{ $value | printf \"%.2f\" }}s)."
+          summary: "High p95 request latency detected on {{ $labels.job }}"
+          description: "95th percentile request latency exceeds 1 second."
+
